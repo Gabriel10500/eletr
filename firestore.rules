@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidLead(data) {
+      return data.keys().hasAll(['id', 'name', 'phone', 'serviceType', 'createdAt', 'status']) &&
+        data.id is string && data.id.size() <= 100 &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+        data.phone is string && data.phone.size() > 0 && data.phone.size() <= 30 &&
+        data.serviceType is string && data.serviceType in ['emergencia', 'residencial', 'comercial', 'predial'] &&
+        data.createdAt is string && data.createdAt.size() <= 50 &&
+        data.status is string && data.status in ['novo', 'em_atendimento', 'orcamento_enviado', 'concluido'] &&
+        (!('city' in data) || (data.city is string && data.city.size() <= 100)) &&
+        (!('notes' in data) || (data.notes is string && data.notes.size() <= 500));
+    }
+
+    match /leads/{leadId} {
+      // Allow read so the electrician admin dashboard can load all leads from any device
+      allow read: if true;
+      // Allow any visitor to create a lead
+      allow create: if isValidLead(request.resource.data);
+      // Allow updating status or notes
+      allow update: if isValidLead(request.resource.data);
+      // Allow deleting leads
+      allow delete: if true;
+    }
+  }
+}

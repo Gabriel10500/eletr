@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "Lead": {
+      "title": "Lead",
+      "description": "Cliente interessado em serviços elétricos",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID único do lead",
+          "maxLength": 100
+        },
+        "name": {
+          "type": "string",
+          "description": "Nome do cliente",
+          "maxLength": 100
+        },
+        "phone": {
+          "type": "string",
+          "description": "Telefone ou WhatsApp do cliente",
+          "maxLength": 30
+        },
+        "serviceType": {
+          "type": "string",
+          "description": "Tipo de serviço solicitado",
+          "enum": ["emergencia", "residencial", "comercial", "predial"]
+        },
+        "city": {
+          "type": "string",
+          "description": "Cidade ou região do cliente",
+          "maxLength": 100
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp ISO da criação",
+          "maxLength": 50
+        },
+        "status": {
+          "type": "string",
+          "description": "Status do atendimento",
+          "enum": ["novo", "em_atendimento", "orcamento_enviado", "concluido"]
+        },
+        "notes": {
+          "type": "string",
+          "description": "Observações sobre o serviço ou visita agendada",
+          "maxLength": 500
+        }
+      },
+      "required": ["id", "name", "phone", "serviceType", "createdAt", "status"]
+    }
+  },
+  "firestore": {
+    "/leads/{leadId}": {
+      "schema": {
+        "$ref": "#/entities/Lead"
+      },
+      "description": "Coleção de contatos de clientes na nuvem"
+    }
+  }
+}

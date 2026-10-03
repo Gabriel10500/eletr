@@ -1,0 +1,7 @@
+{
+  "name": "VoltPro Eletricistas",
+  "description": "Serviços elétricos profissionais residenciais, comerciais e industriais. Orçamento rápido, plantão 24h e técnicos certificados NR-10.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
