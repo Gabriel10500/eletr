@@ -237,6 +237,16 @@ export const LeadsManagerModal: React.FC<LeadsManagerModalProps> = ({
               <span className="hidden sm:inline">Exportar CSV</span>
             </button>
             <button
+              onClick={() => {
+                sessionStorage.removeItem('voltpro_admin_authed');
+                onClose();
+              }}
+              title="Encerrar sessão e bloquear painel"
+              className="px-2.5 py-1.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 border border-rose-900/50 rounded-lg transition-colors cursor-pointer"
+            >
+              Sair
+            </button>
+            <button
               onClick={onClose}
               className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 cursor-pointer"
             >

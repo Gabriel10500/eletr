@@ -22,14 +22,6 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLeadsManager }) => {
             <p className="text-slate-400 leading-relaxed text-xs">
               Serviços elétricos profissionais residenciais, prediais e industriais. Segurança técnica sem improvisos conforme a NBR 5410.
             </p>
-            <div className="pt-1">
-              <button
-                onClick={onOpenLeadsManager}
-                className="text-[11px] text-amber-400/80 hover:text-amber-300 underline underline-offset-4 cursor-pointer"
-              >
-                Acesso do Eletricista (Ver Leads)
-              </button>
-            </div>
           </div>
 
           {/* Quick Links */}
@@ -103,7 +95,13 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLeadsManager }) => {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400">
-          <p>© {new Date().getFullYear()} VoltPro Elétrica. Todos os direitos reservados.</p>
+          <p
+            onClick={onOpenLeadsManager}
+            className="cursor-default select-none hover:text-slate-300 transition-colors"
+            title=""
+          >
+            © {new Date().getFullYear()} VoltPro Elétrica. Todos os direitos reservados.
+          </p>
           <div className="flex items-center gap-4">
             <a href="#termos" className="hover:text-slate-300 transition-colors">Termos de Garantia</a>
             <span>·</span>

@@ -72,15 +72,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentLead, onOpenLeadsManager,
               </button>
             ) : null}
 
-            <button
-              onClick={onOpenLeadsManager}
-              title="Painel de Clientes, Planilha e Notificações por E-mail"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 rounded-lg transition-colors cursor-pointer"
-            >
-              <Users className="w-3.5 h-3.5 text-amber-400" />
-              <span>Painel de Clientes</span>
-            </button>
-
             <a
               href={whatsappUrl}
               target="_blank"
@@ -156,17 +147,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentLead, onOpenLeadsManager,
           </nav>
 
           <div className="pt-3 border-t border-slate-800 space-y-2">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenLeadsManager();
-              }}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium text-slate-300 bg-slate-900 border border-slate-800 rounded-lg"
-            >
-              <Users className="w-4 h-4 text-amber-400" />
-              <span>Painel de Contatos Capturados</span>
-            </button>
-
             <a
               href={whatsappUrl}
               target="_blank"

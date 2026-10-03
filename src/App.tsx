@@ -15,6 +15,7 @@ import { SafetyStandards } from './components/SafetyStandards';
 import { Testimonials } from './components/Testimonials';
 import { BookingForm } from './components/BookingForm';
 import { LeadsManagerModal } from './components/LeadsManagerModal';
+import { AdminAuthModal } from './components/AdminAuthModal';
 import { Footer } from './components/Footer';
 import { FloatingWhatsAppButton } from './components/FloatingWhatsAppButton';
 import { sendLeadNotificationEmail, ADMIN_NOTIFICATION_EMAIL } from './services/gmailService';
@@ -22,73 +23,41 @@ import { appendLeadToSheet } from './services/sheetsService';
 import { saveLeadToCloud, deleteLeadFromCloud, subscribeToCloudLeads } from './services/cloudLeadService';
 import { initAuth, googleSignIn } from './services/googleAuth';
 
-const INITIAL_MOCK_LEADS: Lead[] = [
-  {
-    id: 'lead_seed_1',
-    name: 'Carlos Alberto',
-    phone: '(11) 97120-4320',
-    serviceType: 'residencial',
-    city: 'São Paulo - SP',
-    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-    status: 'em_atendimento',
-    notes: 'Precisa trocar disjuntores do quadro principal e instalar chuveiro.',
-  },
-  {
-    id: 'lead_seed_2',
-    name: 'Fernanda Martins',
-    phone: '(11) 97455-8812',
-    serviceType: 'emergencia',
-    city: 'Santo André - SP',
-    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
-    status: 'orcamento_enviado',
-    notes: 'Queda de energia no andar superior com faísca na tomada.',
-  },
-  {
-    id: 'lead_seed_3',
-    name: 'Rodrigo Alcantara',
-    phone: '(11) 99312-4409',
-    serviceType: 'comercial',
-    city: 'Barueri - SP',
-    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-    status: 'concluido',
-    notes: 'Instalação de Wallbox de 32A na garagem.',
-  }
-];
-
 export default function App() {
   const [currentLead, setCurrentLead] = useState<Lead | null>(null);
   const [allLeads, setAllLeads] = useState<Lead[]>([]);
   const [isGateOpen, setIsGateOpen] = useState(false);
+  const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isLeadsManagerOpen, setIsLeadsManagerOpen] = useState(false);
 
   // Initialize and load saved state from localStorage
   useEffect(() => {
     try {
       const savedUser = localStorage.getItem('voltpro_current_lead');
-      const savedLeads = localStorage.getItem('voltpro_leads_history');
+      const isAuthed = sessionStorage.getItem('voltpro_admin_authed') === 'true';
 
-      let parsedLeads: Lead[] = [];
-      if (savedLeads) {
-        try {
-          parsedLeads = JSON.parse(savedLeads);
-          parsedLeads = parsedLeads.filter(
-            (l) => !l.phone.includes('98765') && !l.phone.includes('98124-7731')
-          );
-        } catch {
-          parsedLeads = INITIAL_MOCK_LEADS;
+      // Only load leads list if the user is authenticated as admin
+      if (isAuthed) {
+        const savedLeads = localStorage.getItem('voltpro_leads_history');
+        if (savedLeads) {
+          try {
+            setAllLeads(JSON.parse(savedLeads));
+          } catch {
+            setAllLeads([]);
+          }
         }
-      } else {
-        parsedLeads = INITIAL_MOCK_LEADS;
       }
-      setAllLeads(parsedLeads);
 
-      // Subscribe to Real-Time Cloud Leads from Firebase Firestore
-      const unsubscribeCloud = subscribeToCloudLeads((cloudLeads) => {
-        if (cloudLeads && cloudLeads.length > 0) {
-          setAllLeads(cloudLeads);
-          localStorage.setItem('voltpro_leads_history', JSON.stringify(cloudLeads));
-        }
-      });
+      // Subscribe to Real-Time Cloud Leads from Firebase Firestore ONLY when admin is authed
+      let unsubscribeCloud = () => {};
+      if (isAuthed) {
+        unsubscribeCloud = subscribeToCloudLeads((cloudLeads) => {
+          if (cloudLeads && cloudLeads.length > 0) {
+            setAllLeads(cloudLeads);
+            localStorage.setItem('voltpro_leads_history', JSON.stringify(cloudLeads));
+          }
+        });
+      }
 
       if (savedUser) {
         try {
@@ -115,6 +84,34 @@ export default function App() {
       setIsGateOpen(true);
     }
   }, []);
+
+  const handleOpenAdminArea = () => {
+    const isAuthed = sessionStorage.getItem('voltpro_admin_authed') === 'true';
+    if (isAuthed) {
+      // Already authenticated in this session, load leads
+      subscribeToCloudLeads((cloudLeads) => {
+        if (cloudLeads && cloudLeads.length > 0) {
+          setAllLeads(cloudLeads);
+          localStorage.setItem('voltpro_leads_history', JSON.stringify(cloudLeads));
+        }
+      });
+      setIsLeadsManagerOpen(true);
+    } else {
+      setIsAdminAuthOpen(true);
+    }
+  };
+
+  const handleAdminAuthSuccess = () => {
+    setIsAdminAuthOpen(false);
+    // Connect to cloud leads upon successful admin auth
+    subscribeToCloudLeads((cloudLeads) => {
+      if (cloudLeads) {
+        setAllLeads(cloudLeads);
+        localStorage.setItem('voltpro_leads_history', JSON.stringify(cloudLeads));
+      }
+    });
+    setIsLeadsManagerOpen(true);
+  };
 
   // When user finishes the gate identification
   const handleGateComplete = (lead: Lead) => {
@@ -244,10 +241,17 @@ export default function App() {
         onDeleteLead={handleDeleteLead}
       />
 
+      {/* Admin Authentication Gate */}
+      <AdminAuthModal
+        isOpen={isAdminAuthOpen}
+        onClose={() => setIsAdminAuthOpen(false)}
+        onSuccess={handleAdminAuthSuccess}
+      />
+
       {/* Top Bar Contract Navigation */}
       <Navbar
         currentLead={currentLead}
-        onOpenLeadsManager={() => setIsLeadsManagerOpen(true)}
+        onOpenLeadsManager={handleOpenAdminArea}
         onEditLead={() => setIsGateOpen(true)}
       />
 
@@ -285,7 +289,7 @@ export default function App() {
 
       {/* Quiet Compliant Footer */}
       <Footer
-        onOpenLeadsManager={() => setIsLeadsManagerOpen(true)}
+        onOpenLeadsManager={handleOpenAdminArea}
       />
 
       {/* Floating Fast WhatsApp Action */}
